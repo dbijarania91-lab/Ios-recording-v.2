@@ -14,6 +14,20 @@ class ShizukuEngine {
                Shizuku.checkSelfPermission() == android.content.pm.PackageManager.PERMISSION_GRANTED
     }
 
+    // --- THE SHIZUKU REFLECTION BYPASS ---
+    // Forces access to the private newProcess API without needing a heavy UserService
+    private fun executeShellCommand(command: String) {
+        try {
+            val clazz = Class.forName("rikka.shizuku.Shizuku")
+            val method = clazz.getDeclaredMethod("newProcess", Array<String>::class.java, Array<String>::class.java, String::class.java)
+            method.isAccessible = true // Breaks the private lock
+            method.invoke(null, arrayOf("sh", "-c", command), null, null)
+        } catch (e: Exception) {
+            Log.e("ShizukuEngine", "Failed to execute Shizuku command: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
     fun startRecording() {
         if (!isReady()) {
             Log.e("ShizukuEngine", "CRITICAL ERROR: Shizuku permission denied!")
@@ -27,23 +41,15 @@ class ShizukuEngine {
         // Forces hardware HEVC silicon natively without MediaProjection lag
         val command = "screenrecord --codec video/hevc --bit-rate 40000000 --size 2400x1080 $tempVideoPath"
         
-        try {
-            Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
-            Log.d("ShizukuEngine", "Zero-Lag Video Recording Started.")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        executeShellCommand(command)
+        Log.d("ShizukuEngine", "Zero-Lag Video Recording Started.")
     }
 
     fun stopRecording() {
-        try {
-            // --- GRACEFUL SAVE (CRITICAL) ---
-            // 'killall -2' prevents MP4 corruption. It tells the binary to safely pack the header.
-            val killCommand = "killall -2 screenrecord"
-            Shizuku.newProcess(arrayOf("sh", "-c", killCommand), null, null)
-            Log.d("ShizukuEngine", "Video gracefully saved to $tempVideoPath")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        // --- GRACEFUL SAVE (CRITICAL) ---
+        // 'killall -2' prevents MP4 corruption. It tells the binary to safely pack the header.
+        val killCommand = "killall -2 screenrecord"
+        executeShellCommand(killCommand)
+        Log.d("ShizukuEngine", "Video gracefully saved to $tempVideoPath")
     }
 }
