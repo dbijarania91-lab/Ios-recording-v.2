@@ -36,9 +36,10 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // The Zero-Lag Shell API (Shizuku) - PROVIDER DELETED
+    // The Zero-Lag Shell API (Shizuku)
     val shizuku_version = "13.1.5"
     implementation("dev.rikka.shizuku:api:$shizuku_version")
+    implementation("dev.rikka.shizuku:provider:$shizuku_version") // <-- WE NEED THIS BACK
 
     // Coroutines for the Thermal Governor and background tasks
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
