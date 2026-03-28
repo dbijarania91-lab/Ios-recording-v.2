@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_record"
         android:layout_width="120dp"
         android:layout_height="120dp"
