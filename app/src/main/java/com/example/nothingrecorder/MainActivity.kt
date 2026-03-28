@@ -1,4 +1,3 @@
-
 package com.example.nothingrecorder
 
 import android.Manifest
@@ -24,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // IGNITE THE CRASH LOGGER FIRST
+        // The Black Box (Crash Logger)
         CrashReporter.init()
         
         setContentView(R.layout.activity_main)
@@ -38,23 +37,23 @@ class MainActivity : AppCompatActivity() {
 
         recordButton.setOnClickListener {
             if (!isRecording) {
-                if (checkShizukuPermission()) {
+                // Step 1: Is the Shizuku bridge alive?
+                if (!Shizuku.pingBinder()) {
+                    Toast.makeText(this, "Shizuku Offline! Start Shizuku via Wireless Debugging first.", Toast.LENGTH_LONG).show()
+                    return@setOnClickListener // STOP here to prevent the crash
+                }
+
+                // Step 2: The bridge is alive. Do we have permission?
+                if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                     startHybridSetup()
                 } else {
+                    // Step 3: Safe to ask for permission
                     Shizuku.requestPermission(0)
                 }
             } else {
                 stopRecording()
             }
         }
-    }
-
-    private fun checkShizukuPermission(): Boolean {
-        if (!Shizuku.pingBinder()) {
-            Toast.makeText(this, "Shizuku Engine offline! Open Shizuku app.", Toast.LENGTH_LONG).show()
-            return false
-        }
-        return Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startHybridSetup() {
